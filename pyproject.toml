@@ -1,0 +1,11 @@
+[project]
+name = "stereo_vision"
+version = "0.1.0"
+dependencies = [
+  "numpy~=1.26",
+  "opencv-python~=4.10"
+]
+maintainers = [
+  {name = "Filip", email = "no@thankyou.com"}
+]
+license = {file = "LICENSE"}
