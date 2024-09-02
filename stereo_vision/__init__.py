@@ -7,6 +7,17 @@ def find_chessboard_points(
     corners=None,
     criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001),
 ):
+    """Finds chessboard on a picture and refines results.
+
+    Args:
+        frame: picture, video frame or sth.
+        patterm_size: number of squares in a chessboard.
+        corners: i think its useless. idk
+        criteria: criteria for refining.
+    
+    Returns:
+        Points of the chessboard squares on a picture
+    """
     ret, corners = cv2.findChessboardCorners(frame, pattern_size, corners)
     if not ret:
         return None
@@ -23,6 +34,19 @@ def get_intrinsic_params(
     distortion_matrix=None,
     **kwargs
 ):
+    """Generating intrinsic parameters of camera.
+
+    Args:
+        object_points: points in 3d space.
+        image_points: points on a 2d picture that coresponds to 3d points
+        image_shape: (width, height) of a picture
+        camera_matrix: i think its useless. idk
+        distortion_matrix: i think its useless. idk
+
+    Returns:
+        mtx: camera matrix.
+        distortion: camera distortion matrix.
+    """
     ret, mtx, distortion, rvecs, tvecs = cv2.calibrateCamera(
         object_points,
         image_points,
@@ -43,6 +67,19 @@ def get_extrinsic_params(
     camera_matrix=None,
     distortion_matrix=None,
 ):
+    """Generating extrinsic parameters of camera in 3d.
+    
+    Args:
+        object_points: points in 3d space.
+        image_points: points on a 2d picture that coresponds to 3d points
+        image_shape: (width, height) of a picture
+        camera_matrix: matrix of a camera :)
+        distortion_matrix: distortion matrix of a camera :)
+
+    Returns:
+        rotation matrix of a camera in 3d space.
+        position vector of a camera in 3d space.
+    """
     ret, mtx, dist, rotation_vecs, translation_vecs = cv2.calibrateCamera(
         object_points,
         image_points,
@@ -66,7 +103,21 @@ def get_3d_point_from_stereo_cameras(
     image1_point_loc,
     image2_point_loc,
 ):
+    """Calculating point in 3d space using point in 2 2d images.
 
+    Args:
+        intrinsic_params_mtx_1: first camera matrix.
+        camera_rotation_1: first camera rotation matrix in 3d space.
+        camera_translation_1: first camera position in 3d space.
+        intrinsic_params_mtx_2: second camera matrix.
+        camera_rotation_2: second camera rotation matrix in 3d space.
+        camera_translation_2: second camera position in 3d space.
+        image1_point_loc: 2d point on a first image.
+        image2_point_loc: 2d point on a second image.
+
+    Returns:
+        position of a point in 3d space.
+    """
     pnt1 = np.array([[image1_point_loc[0]], [image1_point_loc[1]], [1]])
     pnt2 = np.array([[image2_point_loc[0]], [image2_point_loc[1]], [1]])
 
@@ -115,6 +166,17 @@ def get_3d_point_from_n_cameras(
     camera_translations,
     image_point_locs,
 ):
+    """Calculating point in 3d space using point in n 2d images.
+
+    Args:
+        intrinsic_params_mtxs: list of camera matrices.
+        camera_rotations: list of camera rotations matrices in 3d space.
+        camera_translations: list of camera positions in 3d space.
+        image_point_locs: list of 2d positions on a pictures.
+
+    Returns:
+        position of a point in 3d space.
+    """
     assert len(intrinsic_params_mtxs) == len(camera_rotations) == len(camera_translations) == len(image_point_locs), "all lists must have the same lenght"
     assert len(intrinsic_params_mtxs) >= 2, "required at least 2 different views (difference not checked)"
 
@@ -155,6 +217,13 @@ class UndistortionAlgorithm:
     SLOW = 1
 
     def __init__(self, camera_matrix, camera_distortion, size):# size (w, h)
+        """Initializing undistorion algorithm variables.
+
+        Args:
+            camera_matrix: matrix of a camera :)
+            camera_distortion: distortion matrix of a camera :)
+            size: size of a frame (width, height)
+        """
         self.camera_matrix = camera_matrix
         self.camera_distortion = camera_distortion
 
@@ -162,6 +231,15 @@ class UndistortionAlgorithm:
         self.mapx, self.mapy = cv2.initUndistortRectifyMap(self.camera_matrix, self.camera_distortion, None, self.newcameramtx, size, 5)
 
     def undistort_frame(self, frame, speed=0):
+        """Undistorts given image.
+        
+        Args:
+            frame: picture, video frame or sth.
+            speed: quality of undistortion slower-better :)
+
+        Returns:
+            Undistorted frame.
+        """
         assert speed == self.FAST or speed == self.SLOW, "invalid speed"
         match speed:
             case self.FAST:
