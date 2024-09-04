@@ -63,7 +63,6 @@ def get_intrinsic_params(
 def get_extrinsic_params(
     object_points,
     image_points,
-    image_shape,
     camera_matrix=None,
     distortion_matrix=None,
 ):
@@ -80,17 +79,17 @@ def get_extrinsic_params(
         rotation matrix of a camera in 3d space.
         position vector of a camera in 3d space.
     """
-    ret, mtx, dist, rotation_vecs, translation_vecs = cv2.calibrateCamera(
+    ret, rotation_vecs, translation_vecs = cv2.solvePnP(
         object_points,
         image_points,
-        image_shape,
         camera_matrix,
-        distortion_matrix,
+        distortion_matrix
     )
+
     if not ret:
         return None
 
-    return cv2.Rodrigues(rotation_vecs[0])[0], translation_vecs[0]
+    return cv2.Rodrigues(rotation_vecs)[0], translation_vecs
 
 
 def get_3d_point_from_stereo_cameras(
